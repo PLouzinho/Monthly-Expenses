@@ -1,137 +1,145 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <title>Monthly Expenses Sort Game</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Monthly Expenses Sorting Game</title>
   <style>
     body {
+      background-color: #000;
+      color: #fff;
       font-family: Arial, sans-serif;
-      background: #f4f4f4;
-      text-align: center;
       padding: 20px;
+      text-align: center;
+    }
+
+    h1 {
+      color: #00ffcc;
     }
 
     .container {
       display: flex;
       justify-content: space-around;
       margin-top: 30px;
+      gap: 30px;
     }
 
-    .box {
-      border: 2px dashed #333;
+    .dropzone {
+      background-color: #222;
+      border: 2px dashed #555;
+      border-radius: 10px;
       padding: 20px;
-      width: 300px;
+      width: 40%;
       min-height: 300px;
-      background-color: white;
     }
 
-    .box h2 {
-      margin-top: 0;
+    .dropzone h2 {
+      color: #fff;
+      margin-bottom: 10px;
     }
 
     .item {
+      background-color: #444;
       margin: 10px;
       padding: 10px;
-      background: #ddd;
+      border-radius: 8px;
       cursor: grab;
     }
 
-    .correct {
-      background-color: #b0f2b6;
+    #items {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-top: 30px;
+      justify-content: center;
     }
 
-    #finalMessage {
-      display: none;
+    #message {
       margin-top: 30px;
-      font-size: 24px;
-      color: #333;
+      font-size: 1.4em;
+      color: #00ffcc;
     }
   </style>
 </head>
 <body>
-  <h1>Sort the Monthly Expenses</h1>
-  <p>Drag each item to the correct country box</p>
+  <h1>Monthly Expenses Drag & Drop</h1>
+  <p>Drag each item into the correct box: 🇵🇹 Portugal or 🇬🇧 United Kingdom</p>
+
+  <div id="items">
+    <div class="item" draggable="true" data-country="pt">Water Bill – €19.77</div>
+    <div class="item" draggable="true" data-country="uk">Gas/Electricity – £60</div>
+    <div class="item" draggable="true" data-country="pt">Car – €311.84</div>
+    <div class="item" draggable="true" data-country="uk">Rent – £400</div>
+    <div class="item" draggable="true" data-country="pt">Support to mother – €160</div>
+    <div class="item" draggable="true" data-country="uk">Council Tax – £72</div>
+    <div class="item" draggable="true" data-country="pt">Insurance – €58.42</div>
+    <div class="item" draggable="true" data-country="uk">Water Bill – £22.60</div>
+    <div class="item" draggable="true" data-country="pt">Electricity (Iberdrola) – €84.18</div>
+    <div class="item" draggable="true" data-country="pt">Vodafone – €103.93</div>
+  </div>
 
   <div class="container">
-    <div id="portugalBox" class="box" ondrop="drop(event)" ondragover="allowDrop(event)">
-      <h2>Monthly Expenses in Portugal</h2>
+    <div class="dropzone" id="portugal">
+      <h2>🇵🇹 Portugal</h2>
     </div>
-
-    <div id="ukBox" class="box" ondrop="drop(event)" ondragover="allowDrop(event)">
-      <h2>Monthly Expenses in the UK</h2>
-    </div>
-  </div>
-
-  <div class="container" style="margin-top: 40px;">
-    <div>
-      <h3>Expenses List</h3>
-      <div id="items">
-<div class="item" draggable="true" ondragstart="drag(event)" id="Vodafone – 103.93" data-country="pt">Vodafone – 103.93</div>
-<div class="item" draggable="true" ondragstart="drag(event)" id="Support to mother – 160" data-country="pt">Support to mother – 160</div>
-<div class="item" draggable="true" ondragstart="drag(event)" id="Rent – 400" data-country="uk">Rent – 400</div>
-<div class="item" draggable="true" ondragstart="drag(event)" id="Water Bill – 19.77" data-country="pt">Water Bill – 19.77</div>
-<div class="item" draggable="true" ondragstart="drag(event)" id="Gas/Electricity – 60" data-country="uk">Gas/Electricity – 60</div>
-<div class="item" draggable="true" ondragstart="drag(event)" id="Council Tax – 72" data-country="uk">Council Tax – 72</div>
-<div class="item" draggable="true" ondragstart="drag(event)" id="Water Bill – 22.60" data-country="uk">Water Bill – 22.60</div>
-<div class="item" draggable="true" ondragstart="drag(event)" id="Various Insurances – 58.42" data-country="pt">Various Insurances – 58.42</div>
-<div class="item" draggable="true" ondragstart="drag(event)" id="Car – 311.84" data-country="pt">Car – 311.84</div>
-<div class="item" draggable="true" ondragstart="drag(event)" id="Gas/Electricity – 84.18" data-country="pt">Gas/Electricity – 84.18</div>
-
-      </div>
+    <div class="dropzone" id="uk">
+      <h2>🇬🇧 United Kingdom</h2>
     </div>
   </div>
 
-  <div id="finalMessage">“I earn around £1600 after taxes… but by the end of the month, almost nothing is left.”</div>
+  <div id="message"></div>
 
   <script>
-    function allowDrop(ev) {
-      ev.preventDefault();
-    }
+    const items = document.querySelectorAll('.item');
+    const dropzones = document.querySelectorAll('.dropzone');
+    const message = document.getElementById('message');
+    const totalItems = items.length;
 
-    function drag(ev) {
-      ev.dataTransfer.setData("text", ev.target.id);
-    }
+    let placedItems = 0;
 
-    function drop(ev) {
-      ev.preventDefault();
-      var data = ev.dataTransfer.getData("text");
-      var draggedItem = document.getElementById(data);
-      var box = ev.currentTarget;
-
-      const country = draggedItem.getAttribute("data-country");
-      const correctBox = country === "pt" ? "portugalBox" : "ukBox";
-
-      box.appendChild(draggedItem);
-
-      if (box.id === correctBox) {
-        draggedItem.classList.add("correct");
-      } else {
-        draggedItem.classList.remove("correct");
-      }
-
-      checkWinCondition();
-    }
-
-    function checkWinCondition() {
-      const items = document.querySelectorAll('.item');
-      let allCorrect = true;
-
-      items.forEach(item => {
-        const country = item.getAttribute("data-country");
-        const parentId = item.parentElement.id;
-        const correctBox = country === "pt" ? "portugalBox" : "ukBox";
-        if (parentId !== correctBox) {
-          allCorrect = false;
-        }
+    items.forEach(item => {
+      item.addEventListener('dragstart', e => {
+        e.dataTransfer.setData('text/plain', item.dataset.country + '|' + item.textContent);
+        item.classList.add('dragging');
       });
 
-      if (allCorrect) {
-        document.getElementById("finalMessage").style.display = "block";
-      } else {
-        document.getElementById("finalMessage").style.display = "none";
-      }
-    }
+      item.addEventListener('dragend', () => {
+        item.classList.remove('dragging');
+      });
+    });
+
+    dropzones.forEach(zone => {
+      zone.addEventListener('dragover', e => {
+        e.preventDefault();
+      });
+
+      zone.addEventListener('drop', e => {
+        e.preventDefault();
+        const data = e.dataTransfer.getData('text/plain');
+        const [country, text] = data.split('|');
+
+        const correct = (zone.id === 'portugal' && country === 'pt') ||
+                        (zone.id === 'uk' && country === 'uk');
+
+        if (correct) {
+          // Remove original item
+          const original = document.querySelector('.item.dragging');
+          if (original) original.remove();
+
+          const newItem = document.createElement('div');
+          newItem.classList.add('item');
+          newItem.textContent = text;
+          newItem.setAttribute('draggable', 'false');
+          newItem.style.backgroundColor = '#007700';
+          zone.appendChild(newItem);
+          placedItems++;
+
+          if (placedItems === totalItems) {
+            message.textContent = "I earn around £1600 after taxes… but at the end of the month, almost nothing is left.";
+          }
+        }
+      });
+    });
   </script>
 </body>
 </html>
