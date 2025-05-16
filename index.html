@@ -1,113 +1,914 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="pt">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Monthly Expenses Sorting Game</title>
+  <title>Monthly Budget Challenge</title>
   <style>
     body {
-      background-color: #000;
+      background-color: #0a0e1a;
       color: #fff;
-      font-family: Arial, sans-serif;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
       padding: 20px;
       text-align: center;
+      margin: 0;
+      background-image: linear-gradient(45deg, #0a0e1a 0%, #1a2035 100%);
+      min-height: 100vh;
     }
 
     h1 {
       color: #00ffcc;
+      text-shadow: 0 0 10px rgba(0, 255, 204, 0.4);
+      font-size: 2.5em;
+      margin-bottom: 10px;
+    }
+
+    .game-container {
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+
+    .progress-container {
+      margin: 20px auto;
+      width: 80%;
+      background: rgba(255,255,255,0.1);
+      border-radius: 10px;
+      padding: 5px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.2);
+    }
+
+    .progress-bar {
+      height: 20px;
+      border-radius: 8px;
+      background: linear-gradient(90deg, #00ffcc, #00ccff);
+      width: 0%;
+      transition: width 0.5s ease;
+      position: relative;
+    }
+
+    .timer {
+      font-size: 1.2em;
+      font-weight: bold;
+      margin: 10px 0;
+      color: #00ffcc;
+    }
+
+    .score {
+      font-size: 1.5em;
+      margin: 10px 0;
+      font-weight: bold;
+      color: #ff9900;
     }
 
     .container {
       display: flex;
       justify-content: space-around;
-      margin-top: 30px;
-      gap: 30px;
+      margin-top: 20px;
+      padding: 20px;
+      perspective: 1000px;
     }
 
     .dropzone {
-      background-color: #222;
-      border: 2px dashed #555;
-      border-radius: 10px;
+      background: rgba(20, 30, 50, 0.7);
+      border: 2px solid rgba(0, 255, 204, 0.3);
+      border-radius: 15px;
       padding: 20px;
       width: 40%;
-      min-height: 300px;
+      min-height: 250px;
+      box-shadow: 0 10px 20px rgba(0,0,0,0.3);
+      transform-style: preserve-3d;
+      transition: transform 0.3s, box-shadow 0.3s;
+    }
+
+    .dropzone:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 15px 25px rgba(0,0,0,0.4);
     }
 
     .dropzone h2 {
       color: #fff;
-      margin-bottom: 10px;
+      margin-bottom: 15px;
+      font-size: 1.4em;
+      border-bottom: 2px solid rgba(255,255,255,0.1);
+      padding-bottom: 10px;
+    }
+
+    .items-container {
+      display: flex;
+      justify-content: center;
+      flex-wrap: wrap;
+      gap: 15px;
+      margin: 30px 0;
+      perspective: 1000px;
     }
 
     .item {
-      background-color: #444;
-      margin: 10px;
-      padding: 10px;
-      border-radius: 8px;
+      background: linear-gradient(135deg, #2a3350 0%, #1a2035 100%);
+      margin: 5px;
+      padding: 15px;
+      border-radius: 12px;
+      cursor: grab;
+      box-shadow: 0 5px 10px rgba(0,0,0,0.2);
+      transition: all 0.2s ease;
+      width: 180px;
+      position: relative;
+      overflow: hidden;
+      transform-style: preserve-3d;
+      animation: itemEntry 0.5s ease-out;
+    }
+
+    @keyframes itemEntry {
+      from { opacity: 0; transform: scale(0.8) translateY(20px); }
+      to { opacity: 1; transform: scale(1) translateY(0); }
+    }
+
+    .item:hover {
+      transform: translateY(-5px) scale(1.03);
+      box-shadow: 0 8px 15px rgba(0,0,0,0.3);
+    }
+
+    .item:active {
+      transform: scale(0.98);
+    }
+
+    .item::before {
+      content: "";
+      position: absolute;
+      top: 0;
+      left: -100%;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(90deg, transparent, rgba(255,255,255,0.1), transparent);
+      transition: 0.5s;
+    }
+
+    .item:hover::before {
+      left: 100%;
+    }
+
+    .correct-item {
+      background: linear-gradient(135deg, #007039 0%, #005028 100%);
+      color: white;
+      animation: correctPulse 1s;
+      box-shadow: 0 5px 15px rgba(0, 255, 0, 0.3);
+      margin: 5px;
+      padding: 15px;
+      border-radius: 12px;
+      width: 180px;
       cursor: grab;
     }
 
-    #items {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 10px;
-      margin-top: 30px;
-      justify-content: center;
+    @keyframes correctPulse {
+      0% { box-shadow: 0 0 0 0 rgba(0, 255, 0, 0.7); }
+      70% { box-shadow: 0 0 0 15px rgba(0, 255, 0, 0); }
+      100% { box-shadow: 0 0 0 0 rgba(0, 255, 0, 0); }
+    }
+
+    .incorrect-item {
+      background: linear-gradient(135deg, #700000 0%, #500000 100%);
+      color: white;
+      animation: shake 0.5s;
+      box-shadow: 0 5px 15px rgba(255, 0, 0, 0.3);
+      margin: 5px;
+      padding: 15px;
+      border-radius: 12px;
+      width: 180px;
+      cursor: grab;
+    }
+
+    @keyframes shake {
+      0%, 100% { transform: translateX(0); }
+      10%, 30%, 50%, 70%, 90% { transform: translateX(-5px); }
+      20%, 40%, 60%, 80% { transform: translateX(5px); }
+    }
+
+    .expense-amount {
+      font-size: 1.2em;
+      font-weight: bold;
+      color: #ff9900;
+      display: block;
+      margin-top: 5px;
+    }
+
+    .expense-name {
+      display: block;
+      margin-bottom: 5px;
+      font-weight: bold;
     }
 
     #message {
       margin-top: 30px;
       font-size: 1.4em;
       color: #00ffcc;
+      padding: 20px;
+      border-radius: 10px;
+      background: rgba(0,0,0,0.2);
+      display: none;
+      animation: fadeIn 1s;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    
+    .flag {
+      font-size: 2em;
+      margin-right: 10px;
+      vertical-align: middle;
+    }
+
+    button {
+      margin-top: 20px;
+      padding: 12px 25px;
+      background: linear-gradient(90deg, #00ffcc, #00ccff);
+      border: none;
+      border-radius: 30px;
+      color: #0a0e1a;
+      font-weight: bold;
+      cursor: pointer;
+      font-size: 1.1em;
+      transition: all 0.3s ease;
+      box-shadow: 0 5px 15px rgba(0, 255, 204, 0.4);
+      display: none;
+    }
+
+    button:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 8px 20px rgba(0, 255, 204, 0.6);
+    }
+
+    .level-indicator {
+      position: absolute;
+      top: 20px;
+      right: 20px;
+      background: rgba(0,0,0,0.5);
+      padding: 10px 20px;
+      border-radius: 20px;
+      font-weight: bold;
+      color: #00ffcc;
+    }
+
+    .firework {
+      position: absolute;
+      width: 5px;
+      height: 5px;
+      border-radius: 50%;
+      box-shadow: 0 0 10px 2px;
+      animation: firework-animation 2s ease-out infinite;
+      opacity: 0;
+      pointer-events: none;
+    }
+
+    @keyframes firework-animation {
+      0% { transform: translate(var(--x), var(--y)) scale(0); opacity: 1; }
+      50% { opacity: 1; }
+      100% { transform: translate(var(--x), var(--y)) scale(1); opacity: 0; }
+    }
+
+    .streak-counter {
+      position: absolute;
+      top: 20px;
+      left: 20px;
+      background: rgba(0,0,0,0.5);
+      padding: 10px 20px;
+      border-radius: 20px;
+      font-weight: bold;
+      color: #ff9900;
+    }
+
+    .confetti {
+      position: absolute;
+      width: 10px;
+      height: 20px;
+      opacity: 0;
+      animation: confetti-fall 4s ease-out forwards;
+      pointer-events: none;
+    }
+
+    @keyframes confetti-fall {
+      0% { transform: translateY(-100px) rotate(0deg); opacity: 1; }
+      100% { transform: translateY(calc(100vh + 100px)) rotate(720deg); opacity: 0; }
+    }
+    
+    .sound-toggle {
+      position: absolute;
+      bottom: 20px;
+      right: 20px;
+      background: rgba(0,0,0,0.5);
+      border: none;
+      border-radius: 50%;
+      width: 50px;
+      height: 50px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      cursor: pointer;
+      font-size: 1.5em;
+      color: #fff;
+      transition: all 0.3s ease;
+      box-shadow: 0 3px 10px rgba(0,0,0,0.3);
+    }
+    
+    .sound-toggle:hover {
+      transform: scale(1.1);
+      box-shadow: 0 5px 15px rgba(0,0,0,0.5);
+    }
+
+    .ready-message {
+      font-size: 1.2em;
+      color: #00ffcc;
+      margin-top: 10px;
+      animation: pulse 2s infinite;
+    }
+
+    @keyframes pulse {
+      0% { opacity: 0.7; }
+      50% { opacity: 1; }
+      100% { opacity: 0.7; }
     }
   </style>
 </head>
 <body>
-  <h1>Monthly Expenses Drag & Drop</h1>
-  <p>Drag each item into the correct box: 🇵🇹 Portugal or 🇬🇧 United Kingdom</p>
-
-  <div id="items">
-    <div class="item" draggable="true" data-country="pt">Water Bill – €19.77</div>
-    <div class="item" draggable="true" data-country="uk">Gas/Electricity – £60</div>
-    <div class="item" draggable="true" data-country="pt">Car – €311.84</div>
-    <div class="item" draggable="true" data-country="uk">Rent – £400</div>
-    <div class="item" draggable="true" data-country="pt">Support to mother – €160</div>
-    <div class="item" draggable="true" data-country="uk">Council Tax – £72</div>
-    <div class="item" draggable="true" data-country="pt">Insurance – €58.42</div>
-    <div class="item" draggable="true" data-country="uk">Water Bill – £22.60</div>
-    <div class="item" draggable="true" data-country="pt">Electricity (Iberdrola) – €84.18</div>
-    <div class="item" draggable="true" data-country="pt">Vodafone – €103.93</div>
+  <div class="level-indicator">Level: <span id="level">1</span></div>
+  <div class="streak-counter">Streak: <span id="streak">0</span></div>
+  
+  <div class="game-container">
+    <h1>💰 Monthly Budget Challenge 💰</h1>
+    <p>Drag each expense to the correct country and earn points! Maximum score: 1000 points</p>
+  
+    <div class="score">Score: <span id="score">0</span></div>
+    <div class="timer">Time: <span id="timer">60</span>s</div>
+    <div id="ready-message" class="ready-message">Drag your first expense to start the timer!</div>
+    
+    <div class="progress-container">
+      <div class="progress-bar" id="progress"></div>
+    </div>
+  
+    <div class="items-container" id="items">
+      <!-- Items will be generated by JS -->
+    </div>
+  
+    <div class="container">
+      <div class="dropzone" id="portugal">
+        <h2><span class="flag">🇵🇹</span> Portugal</h2>
+      </div>
+      <div class="dropzone" id="uk">
+        <h2><span class="flag">🇬🇧</span> United Kingdom</h2>
+      </div>
+    </div>
+  
+    <div id="message"></div>
+    <button id="next-level">Next Level</button>
+    <button id="reset">Play Again</button>
   </div>
 
-  <div class="container">
-    <div class="dropzone" id="portugal">
-      <h2>🇵🇹 Portugal</h2>
-    </div>
-    <div class="dropzone" id="uk">
-      <h2>🇬🇧 United Kingdom</h2>
-    </div>
-  </div>
+  <button class="sound-toggle" id="sound-toggle">🔊</button>
 
-  <div id="message"></div>
+  <!-- Audio elements -->
+  <audio id="tick-sound" src="https://www.soundjay.com/buttons/sounds/button-09.mp3" preload="auto"></audio>
+  <audio id="success-sound" src="https://www.soundjay.com/buttons/sounds/button-37a.mp3" preload="auto"></audio>
+  <audio id="error-sound" src="https://www.soundjay.com/buttons/sounds/button-10.mp3" preload="auto"></audio>
+  
+  <!-- Background heartbeat sounds -->
+  <audio id="heartbeat-normal" src="https://www.soundjay.com/human/sounds/heartbeat-01a.mp3" preload="auto" loop></audio>
+  <audio id="heartbeat-fast" src="https://www.soundjay.com/human/sounds/heartbeat-02a.mp3" preload="auto" loop></audio>
+  <audio id="baby-crying" src="https://www.soundjay.com/human/sounds/baby-crying-08.mp3" preload="auto"></audio>
+  
+  <!-- End game sounds -->
+  <audio id="applause-sound" src="https://www.soundjay.com/human/sounds/applause-7.mp3" preload="auto"></audio>
+  <audio id="laugh-sound" src="https://www.soundjay.com/human/sounds/man-laughing-02.mp3" preload="auto"></audio>
+  <audio id="whining-sound" src="https://www.soundjay.com/human/sounds/baby-whining-02.mp3" preload="auto"></audio>
 
   <script>
-    const items = document.querySelectorAll('.item');
+    // Configuração do jogo
+    const gameConfig = {
+      initialTime: 60,
+      pointsPerCorrect: 66.67, // 1000 pontos ÷ 15 itens = 66.67 pontos por item
+      penaltyForIncorrect: -10, // Deduz 10 pontos por colocação incorreta
+      penaltyForMove: -5, // Penalidade por mover um item de incorreto para correto
+      soundDuration: 5000, // Duração para sons de fim de jogo em milissegundos
+      levels: [
+        { 
+          items: [
+            // Level 1 itens misturados
+            { text: "Water Bill", amount: "19.77", country: "pt" },
+            { text: "Water Bill", amount: "22.60", country: "uk" },
+            { text: "Gas/Electricity", amount: "84.18", country: "pt" },
+            { text: "Gas/Electricity", amount: "60", country: "uk" },
+            { text: "Internet", amount: "103.93", country: "pt" },
+            { text: "Internet", amount: "32.50", country: "uk" }
+          ]
+        },
+        {
+          items: [
+            // Level 2 itens misturados
+            { text: "Various Insurance", amount: "58.42", country: "pt" },
+            { text: "Food", amount: "150", country: "uk" },
+            { text: "Car", amount: "311.84", country: "pt" },
+            { text: "Miscellaneous", amount: "100", country: "uk" },
+            { text: "Mother Support", amount: "160", country: "pt" },
+            { text: "Fuel", amount: "20", country: "uk" },
+            { text: "Home Insurance", amount: "65", country: "pt" },
+            { text: "Council Tax", amount: "72", country: "uk" },
+            { text: "Rent", amount: "400", country: "uk" },
+            { text: "Road Tax", amount: "165", country: "pt" }
+          ]
+        }
+      ]
+    };
+
+    // Estado do jogo
+    let gameState = {
+      score: 0,
+      currentLevel: 1,
+      timeRemaining: gameConfig.initialTime,
+      streak: 0,
+      correctlyPlaced: 0,
+      totalItems: 0,
+      totalItemsAllLevels: 0, // Total de itens em todos os níveis para pontuação
+      timerInterval: null,
+      isGameComplete: false,
+      placedItems: new Map(), // Rastrear quais itens foram colocados e seu status
+      errors: 0, // Rastrear erros totais para cálculo da pontuação final
+      soundEnabled: true, // Som habilitado por padrão
+      currentBackgroundSound: null, // Rastrear qual som de fundo está tocando
+      timePercentage: 100, // Tempo restante como porcentagem
+      timerStarted: false // Flag para rastrear se o temporizador foi iniciado
+    };
+
+    // Elementos DOM
+    const itemsContainer = document.getElementById('items');
     const dropzones = document.querySelectorAll('.dropzone');
     const message = document.getElementById('message');
-    const totalItems = items.length;
+    const resetButton = document.getElementById('reset');
+    const nextLevelButton = document.getElementById('next-level');
+    const scoreDisplay = document.getElementById('score');
+    const timerDisplay = document.getElementById('timer');
+    const progressBar = document.getElementById('progress');
+    const levelIndicator = document.getElementById('level');
+    const streakCounter = document.getElementById('streak');
+    const soundToggle = document.getElementById('sound-toggle');
+    const readyMessage = document.getElementById('ready-message');
 
-    let placedItems = 0;
-
-    items.forEach(item => {
-      item.addEventListener('dragstart', e => {
-        e.dataTransfer.setData('text/plain', item.dataset.country + '|' + item.textContent);
-        item.classList.add('dragging');
-      });
-
-      item.addEventListener('dragend', () => {
-        item.classList.remove('dragging');
-      });
+    // Elementos de áudio
+    const tickSound = document.getElementById('tick-sound');
+    const successSound = document.getElementById('success-sound');
+    const errorSound = document.getElementById('error-sound');
+    
+    // Sons de fundo
+    const heartbeatNormal = document.getElementById('heartbeat-normal');
+    const heartbeatFast = document.getElementById('heartbeat-fast');
+    const babyCrying = document.getElementById('baby-crying');
+    
+    // Sons de fim de jogo
+    const applauseSound = document.getElementById('applause-sound');
+    const laughSound = document.getElementById('laugh-sound');
+    const whiningSound = document.getElementById('whining-sound');
+    
+    // Definir volume para sons de fundo
+    heartbeatNormal.volume = 0.4;
+    heartbeatFast.volume = 0.5;
+    babyCrying.volume = 0.6;
+    
+    // Para dispositivos móveis - garantir reprodução de áudio na primeira interação do usuário
+    function enableAudio() {
+      // Não inicie o som de fundo ainda - aguarde o primeiro arrasto
+      if (gameState.soundEnabled) {
+        // Pré-carregar sons
+        tickSound.load();
+        successSound.load();
+        errorSound.load();
+        heartbeatNormal.load();
+        heartbeatFast.load();
+        babyCrying.load();
+      }
+    }
+    
+    document.body.addEventListener('click', function() {
+      enableAudio();
+    }, {once: true});
+    
+    // Botão para alternar som
+    soundToggle.addEventListener('click', () => {
+      gameState.soundEnabled = !gameState.soundEnabled;
+      soundToggle.textContent = gameState.soundEnabled ? '🔊' : '🔇';
+      
+      if (!gameState.soundEnabled) {
+        stopAllSounds();
+      } else if (gameState.timerStarted) {
+        playBackgroundSound();
+      }
     });
 
+    // Função para tocar som
+    function playSound(sound) {
+      if (gameState.soundEnabled) {
+        sound.currentTime = 0;
+        sound.play().catch(e => console.log("Não foi possível reproduzir o áudio:", e));
+      }
+    }
+    
+    // Tocar som com duração
+    function playSoundWithDuration(sound, duration) {
+      if (gameState.soundEnabled) {
+        sound.currentTime = 0;
+        sound.play().catch(e => console.log("Não foi possível reproduzir o áudio:", e));
+        
+        // Parar após duração
+        setTimeout(() => {
+          sound.pause();
+          sound.currentTime = 0;
+        }, duration);
+      }
+    }
+    
+    // Parar todos os sons de fundo
+    function stopAllSounds() {
+      heartbeatNormal.pause();
+      heartbeatNormal.currentTime = 0;
+      
+      heartbeatFast.pause();
+      heartbeatFast.currentTime = 0;
+      
+      babyCrying.pause();
+      babyCrying.currentTime = 0;
+      
+      gameState.currentBackgroundSound = null;
+    }
+    
+    // Tocar som de fundo apropriado com base no tempo restante
+    function playBackgroundSound() {
+      if (!gameState.soundEnabled || !gameState.timerStarted) return;
+      
+      // Parar quaisquer sons atualmente em reprodução
+      stopAllSounds();
+      
+      // Escolher som com base na porcentagem de tempo
+      if (gameState.timePercentage > 40) {
+        heartbeatNormal.play().catch(e => console.log("Não foi possível reproduzir o áudio:", e));
+        gameState.currentBackgroundSound = heartbeatNormal;
+      } else if (gameState.timePercentage > 5) {
+        heartbeatFast.play().catch(e => console.log("Não foi possível reproduzir o áudio:", e));
+        gameState.currentBackgroundSound = heartbeatFast;
+      } else if (gameState.timePercentage > 0) {
+        babyCrying.play().catch(e => console.log("Não foi possível reproduzir o áudio:", e));
+        gameState.currentBackgroundSound = babyCrying;
+      }
+    }
+    
+    // Reproduzir choro de bebê por 3 segundos quando o tempo acabar (apenas no nível 2)
+    function playTimeUpSound() {
+      if (gameState.soundEnabled && gameState.currentLevel > 1) {
+        playSoundWithDuration(babyCrying, gameConfig.soundDuration);
+      }
+    }
+    
+    // Reproduzir som de fim de jogo com base na pontuação final (apenas no nível 2 ou nível final)
+    function playEndGameSound(score) {
+      if (!gameState.soundEnabled || gameState.currentLevel <= 1) return;
+      
+      stopAllSounds();
+      
+      if (score >= 800) {
+        playSoundWithDuration(applauseSound, gameConfig.soundDuration);
+      } else if (score >= 500) {
+        playSoundWithDuration(laughSound, gameConfig.soundDuration);
+      } else {
+        playSoundWithDuration(whiningSound, gameConfig.soundDuration);
+      }
+    }
+
+    // Calcular total de itens em todos os níveis
+    function calculateTotalItems() {
+      let total = 0;
+      gameConfig.levels.forEach(level => {
+        total += level.items.length;
+      });
+      return total;
+    }
+    
+    // Embaralhar um array (para randomizar posições dos itens)
+    function shuffleArray(array) {
+      for (let i = array.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [array[i], array[j]] = [array[j], array[i]];
+      }
+      return array;
+    }
+
+    // Inicializar jogo
+    function initGame(level = 1) {
+      // Limpar quaisquer itens existentes
+      itemsContainer.innerHTML = '';
+      document.getElementById('portugal').innerHTML = '<h2><span class="flag">🇵🇹</span> Portugal</h2>';
+      document.getElementById('uk').innerHTML = '<h2><span class="flag">🇬🇧</span> United Kingdom</h2>';
+      
+      // Calcular o total de itens em todos os níveis (para pontuação) se for o primeiro nível
+      gameState.timerStarted = false;
+if (level === 1) {
+        gameState.totalItemsAllLevels = calculateTotalItems();
+        gameState.score = 0;
+        gameState.errors = 0;
+        gameState.timerStarted = false;
+        
+        // Mostrar a mensagem de pronto
+        readyMessage.style.display = 'block';
+        
+        // Parar qualquer temporizador em andamento
+        if (gameState.timerInterval) {
+          clearInterval(gameState.timerInterval);
+          gameState.timerInterval = null;
+        }
+      }
+      
+      // Parar quaisquer sons
+      stopAllSounds();
+      
+      // Redefinir ou atualizar o estado do jogo
+      gameState.currentLevel = level;
+      gameState.correctlyPlaced = 0;
+      gameState.timeRemaining = gameConfig.initialTime;
+      gameState.timePercentage = 100;
+      gameState.isGameComplete = false;
+      gameState.placedItems = new Map();
+      gameState.streak = 0;
+      
+      // Atualizar UI
+      levelIndicator.textContent = level;
+      timerDisplay.textContent = gameState.timeRemaining;
+      streakCounter.textContent = gameState.streak;
+      scoreDisplay.textContent = gameState.score;
+      message.style.display = 'none';
+      resetButton.style.display = 'none';
+      nextLevelButton.style.display = 'none';
+      
+      // Obter itens do nível atual
+      const levelData = gameConfig.levels[level - 1];
+      if (!levelData) {
+        gameComplete();
+        return;
+      }
+      
+      // Definir total de itens para este nível
+      gameState.totalItems = levelData.items.length;
+      
+      // Embaralhar itens antes de exibir
+      const shuffledItems = shuffleArray([...levelData.items]);
+      
+      // Criar e adicionar itens com um atraso para efeito de animação
+      shuffledItems.forEach((item, index) => {
+        setTimeout(() => {
+          createItem(item);
+        }, index * 100);
+      });
+      
+      // Redefinir barra de progresso
+      updateProgressBar(0);
+    }
+
+    // Criar um item arrastável
+    function createItem(itemData) {
+      const item = document.createElement('div');
+      item.className = 'item';
+      item.setAttribute('draggable', 'true');
+      item.dataset.country = itemData.country;
+      item.dataset.id = generateUniqueId(); // Adicionar um identificador único
+      
+      const nameSpan = document.createElement('span');
+      nameSpan.className = 'expense-name';
+      nameSpan.textContent = itemData.text;
+      
+      const amountSpan = document.createElement('span');
+      amountSpan.className = 'expense-amount';
+      amountSpan.textContent = itemData.amount; // Sem símbolo de moeda
+      
+      item.appendChild(nameSpan);
+      item.appendChild(amountSpan);
+      
+      makeDraggable(item);
+      itemsContainer.appendChild(item);
+      
+      // Adicionar uma pequena rotação aleatória para interesse visual
+      const rotation = Math.random() * 6 - 3;
+      item.style.transform = `rotate(${rotation}deg)`;
+      
+      return item;
+    }
+
+    // Gerar um ID único para itens
+    function generateUniqueId() {
+      return 'item-' + Math.random().toString(36).substr(2, 9);
+    }
+
+    // Tornar um elemento arrastável
+    function makeDraggable(element) {
+      element.setAttribute('draggable', 'true');
+      
+      element.addEventListener('dragstart', e => {
+        e.dataTransfer.setData('text/plain', JSON.stringify({
+          country: element.dataset.country,
+          id: element.dataset.id,
+          html: element.innerHTML,
+          wasCorrect: element.classList.contains('correct-item'),
+          wasIncorrect: element.classList.contains('incorrect-item')
+        }));
+        element.classList.add('dragging');
+        
+        // Iniciar temporizador no primeiro arrasto, se ainda não iniciado
+        if (!gameState.timerStarted) {
+          gameState.timerStarted = true;
+          startTimer();
+          readyMessage.style.display = 'none'; // Ocultar mensagem de pronto
+          
+          // Iniciar som de fundo
+          playBackgroundSound();
+        }
+        
+        // Tocar som de tick quando começar a arrastar
+        playSound(tickSound);
+      });
+
+      element.addEventListener('dragend', () => {
+        element.classList.remove('dragging');
+      });
+    }
+
+    // Iniciar o temporizador do jogo
+    function startTimer() {
+      // Limpar qualquer temporizador existente
+      if (gameState.timerInterval) {
+        clearInterval(gameState.timerInterval);
+      }
+      
+      const initialTime = gameConfig.initialTime;
+      
+      gameState.timerInterval = setInterval(() => {
+        gameState.timeRemaining--;
+        gameState.timePercentage = Math.floor((gameState.timeRemaining / initialTime) * 100);
+        timerDisplay.textContent = gameState.timeRemaining;
+        
+        // Mudar cor quando o tempo estiver acabando
+        if (gameState.timeRemaining <= 10) {
+          timerDisplay.style.color = '#ff3300';
+        }
+        
+        // Atualizar som de fundo com base no tempo restante
+        if (gameState.timePercentage === 40 || gameState.timePercentage === 5) {
+          playBackgroundSound();
+        }
+        
+        if (gameState.timeRemaining <= 0) {
+          clearInterval(gameState.timerInterval);
+          gameState.timerInterval = null;
+          timeUp();
+        }
+      }, 1000);
+    }
+
+    // Lidar com tempo esgotado
+    function timeUp() {
+      message.textContent = "Time's up! Try again to improve your score.";
+      message.style.display = 'block';
+      resetButton.style.display = 'inline-block';
+      
+      // Parar sons de fundo e reproduzir som de tempo esgotado (choro de bebê por 3 segundos)
+      stopAllSounds();
+      playTimeUpSound(); // Isso agora só toca no nível 2+
+      
+      // Tocar som de erro
+      playSound(errorSound);
+    }
+
+    // Atualizar a barra de progresso
+    function updateProgressBar(progress) {
+      // Calcular porcentagem
+      const percentage = (progress / gameState.totalItems) * 100;
+      progressBar.style.width = `${percentage}%`;
+    }
+
+    // Criar efeitos visuais para respostas corretas
+    function createEffects(target, isCorrect) {
+      if (isCorrect) {
+        // Criar efeito de fogos de artifício
+        for (let i = 0; i < 20; i++) {
+          const firework = document.createElement('div');
+          firework.className = 'firework';
+          
+          // Cor aleatória
+          const colors = ['#00ffcc', '#00ccff', '#ffcc00', '#ff9900', '#ff3300'];
+          const color = colors[Math.floor(Math.random() * colors.length)];
+          firework.style.boxShadow = `0 0 10px 2px ${color}`;
+          
+          // Posição aleatória
+          const rect = target.getBoundingClientRect();
+          const centerX = rect.left + rect.width / 2;
+          const centerY = rect.top + rect.height / 2;
+          
+          const angle = Math.random() * Math.PI * 2;
+          const distance = 50 + Math.random() * 100;
+          const x = Math.cos(angle) * distance;
+          const y = Math.sin(angle) * distance;
+          
+          firework.style.setProperty('--x', `${x}px`);
+          firework.style.setProperty('--y', `${y}px`);
+          
+          // Adicionar ao DOM
+          document.body.appendChild(firework);
+          
+          // Remover após a conclusão da animação
+          setTimeout(() => {
+            firework.remove();
+          }, 2000);
+        }
+      }
+    }
+
+    // Criar efeito de confete para conclusão de nível
+    function createConfetti() {
+      const colors = ['#00ffcc', '#00ccff', '#ffcc00', '#ff9900', '#ff3300', '#9900ff'];
+      
+      for (let i = 0; i < 100; i++) {
+        const confetti = document.createElement('div');
+        confetti.className = 'confetti';
+        
+        // Propriedades aleatórias
+        confetti.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
+        confetti.style.left = `${Math.random() * 100}vw`;
+        confetti.style.width = `${5 + Math.random() * 10}px`;
+        confetti.style.height = `${10 + Math.random() * 15}px`;
+        confetti.style.animationDelay = `${Math.random() * 2}s`;
+        
+        document.body.appendChild(confetti);
+        
+        // Remover após a conclusão da animação
+        setTimeout(() => {
+          confetti.remove();
+        }, 4000);
+      }
+    }
+
+    // Lidar com conclusão do nível
+    function levelComplete() {
+      // Parar sons de fundo
+      stopAllSounds();
+      
+      clearInterval(gameState.timerInterval);
+      gameState.timerInterval = null;
+      
+      // Calcular quantos itens foram colocados corretamente
+      const correctItems = gameState.correctlyPlaced;
+      
+      // Atualizar exibição de pontuação
+      scoreDisplay.textContent = Math.round(gameState.score);
+      
+      // Exibir mensagem de conclusão
+      message.innerHTML = `<strong>Level ${gameState.currentLevel} completo!</strong><br>Correct items: ${correctItems}/${gameState.totalItems}<br>Current score: ${Math.round(gameState.score)}`;
+      message.style.display = 'block';
+      
+      // Tocar som de fim apropriado (apenas no nível 2+)
+      playEndGameSound(gameState.score);
+      
+      // Mostrar o botão de próximo nível se houver mais níveis
+      if (gameState.currentLevel < gameConfig.levels.length) {
+        nextLevelButton.style.display = 'inline-block';
+      } else {
+        gameComplete();
+      }
+      
+      // Criar efeito de confete
+      createConfetti();
+    }
+
+    // Lidar com conclusão do jogo
+    function gameComplete() {
+      const finalScore = Math.round(gameState.score);
+      
+      message.innerHTML = `<strong>Congratulations! You completed all the levels!</strong><br>
+                          Final score: ${finalScore} de 1000 pontos possíveis<br>
+                          Mistakes made: ${gameState.errors}<br><br>
+                          "I earn about £1600 after taxes... but at the end of the month, almost nothing is left."`;
+      message.style.display = 'block';
+      resetButton.style.display = 'inline-block';
+      nextLevelButton.style.display = 'none';
+      gameState.isGameComplete = true;
+      
+      // Tocar som de fim apropriado (apenas se não estiver no nível 1)
+      playEndGameSound(finalScore);
+      
+      // Criar muitos confetes!
+      createConfetti();
+    }
+
+    // Verificar se todos os itens estão corretamente colocados para conclusão do nível
+    function checkLevelCompletion() {
+      // Apenas completar o nível se todos os itens estiverem corretamente colocados
+      if (gameState.correctlyPlaced === gameState.totalItems) {
+        levelComplete();
+      }
+    }
+
+    // Lidar com eventos de zona de soltar
     dropzones.forEach(zone => {
       zone.addEventListener('dragover', e => {
         e.preventDefault();
@@ -115,31 +916,186 @@
 
       zone.addEventListener('drop', e => {
         e.preventDefault();
-        const data = e.dataTransfer.getData('text/plain');
-        const [country, text] = data.split('|');
-
-        const correct = (zone.id === 'portugal' && country === 'pt') ||
-                        (zone.id === 'uk' && country === 'uk');
-
-        if (correct) {
-          // Remove original item
-          const original = document.querySelector('.item.dragging');
-          if (original) original.remove();
-
+        const dataString = e.dataTransfer.getData('text/plain');
+        try {
+          const data = JSON.parse(dataString);
+          
+          const draggingElement = document.querySelector('.dragging');
+          
+          // Verificar se a colocação está correta
+          const correct = (zone.id === 'portugal' && data.country === 'pt') || 
+                          (zone.id === 'uk' && data.country === 'uk');
+          
+          // Criar ou modificar item
           const newItem = document.createElement('div');
-          newItem.classList.add('item');
-          newItem.textContent = text;
-          newItem.setAttribute('draggable', 'false');
-          newItem.style.backgroundColor = '#007700';
-          zone.appendChild(newItem);
-          placedItems++;
-
-          if (placedItems === totalItems) {
-            message.textContent = "I earn around £1600 after taxes… but at the end of the month, almost nothing is left.";
+          newItem.innerHTML = data.html;
+          newItem.dataset.country = data.country;
+          newItem.dataset.id = data.id;
+          
+          // Lidar com atualizações de pontuação com base no histórico do item
+          if (correct) {
+            newItem.className = 'correct-item';
+            
+            // Tocar som de sucesso
+            playSound(successSound);
+            
+            // Se este item ainda não estava correto em outro lugar
+            if (!data.wasCorrect) {
+              // Se estava incorreto antes (sendo movido de errado para certo)
+              if (data.wasIncorrect) {
+                // Aplicar uma penalidade por mover de errado para certo
+                gameState.score += gameConfig.penaltyForMove;
+                
+                // Mostrar a penalidade
+                const penaltyIndicator = document.createElement('div');
+                penaltyIndicator.textContent = `${gameConfig.penaltyForMove}`;
+                penaltyIndicator.style.position = 'absolute';
+                penaltyIndicator.style.color = '#ff9900';
+                penaltyIndicator.style.fontSize = '1.2em';
+                penaltyIndicator.style.fontWeight = 'bold';
+                
+                const rect = draggingElement.getBoundingClientRect();
+                penaltyIndicator.style.left = `${rect.left}px`;
+                penaltyIndicator.style.top = `${rect.top}px`;
+                penaltyIndicator.style.animation = 'fadeUp 1s forwards';
+                
+                document.body.appendChild(penaltyIndicator);
+                setTimeout(() => penaltyIndicator.remove(), 1000);
+                
+                // Se este item estava anteriormente incorreto em outro lugar, incrementar o contador correto
+                if (!gameState.placedItems.has(data.id) || gameState.placedItems.get(data.id) === 'incorrect') {
+                  gameState.correctlyPlaced++;
+                }
+              } else {
+                // Colocação correta nova
+                gameState.correctlyPlaced++;
+                gameState.streak++;
+                
+                // Adicionar pontos base para colocação correta
+                gameState.score += gameConfig.pointsPerCorrect;
+                
+                // Criar indicador de pontuação flutuante
+                const pointsIndicator = document.createElement('div');
+                pointsIndicator.textContent = `+${Math.round(gameConfig.pointsPerCorrect)}`;
+                pointsIndicator.style.position = 'absolute';
+                pointsIndicator.style.color = '#00ffcc';
+                pointsIndicator.style.fontSize = '1.2em';
+                pointsIndicator.style.fontWeight = 'bold';
+                
+                const rect = draggingElement.getBoundingClientRect();
+                pointsIndicator.style.left = `${rect.left}px`;
+                pointsIndicator.style.top = `${rect.top}px`;
+                pointsIndicator.style.animation = 'fadeUp 1s forwards';
+                
+                document.body.appendChild(pointsIndicator);
+                setTimeout(() => pointsIndicator.remove(), 1000);
+                
+                // Criar efeitos visuais
+                createEffects(draggingElement, true);
+              }
+            }
+            
+            // Registrar este item como corretamente colocado
+            gameState.placedItems.set(data.id, 'correct');
+          } else {
+            newItem.className = 'incorrect-item';
+            
+            // Tocar som de erro
+            playSound(errorSound);
+            
+            // Se este item estava correto antes, decrementar o contador
+            if (data.wasCorrect) {
+              gameState.correctlyPlaced--;
+            }
+            
+            // Se esta é uma nova colocação incorreta, aplicar penalidade
+            if (!data.wasIncorrect) {
+              gameState.score += gameConfig.penaltyForIncorrect;
+              gameState.streak = 0;
+              gameState.errors++; // Rastrear erros totais para pontuação final
+              
+              // Mostrar a penalidade
+              const penaltyIndicator = document.createElement('div');
+              penaltyIndicator.textContent = `${gameConfig.penaltyForIncorrect}`;
+              penaltyIndicator.style.position = 'absolute';
+              penaltyIndicator.style.color = '#ff3300';
+              penaltyIndicator.style.fontSize = '1.2em';
+              penaltyIndicator.style.fontWeight = 'bold';
+              
+              const rect = draggingElement.getBoundingClientRect();
+              penaltyIndicator.style.left = `${rect.left}px`;
+              penaltyIndicator.style.top = `${rect.top}px`;
+              penaltyIndicator.style.animation = 'fadeUp 1s forwards';
+              
+              document.body.appendChild(penaltyIndicator);
+              setTimeout(() => penaltyIndicator.remove(), 1000);
+            }
+            
+            // Registrar este item como incorretamente colocado
+            gameState.placedItems.set(data.id, 'incorrect');
           }
+          
+          // Tornar o novo item arrastável
+          makeDraggable(newItem);
+          
+          // Atualizar UI do jogo
+          scoreDisplay.textContent = Math.round(gameState.score);
+          streakCounter.textContent = gameState.streak;
+          updateProgressBar(gameState.correctlyPlaced);
+          
+          // Adicionar à zona alvo
+          zone.appendChild(newItem);
+          
+          // Remover elemento original
+          if (draggingElement) {
+            draggingElement.remove();
+          }
+          
+          // Verificar se o nível está completo
+          checkLevelCompletion();
+        } catch (error) {
+          console.error("Erro ao processar soltar:", error);
         }
       });
     });
+
+    // Event listeners para botões
+    resetButton.addEventListener('click', () => {
+      gameState.score = 0;
+      gameState.streak = 0;
+      gameState.errors = 0;
+      scoreDisplay.textContent = 0;
+      streakCounter.textContent = 0;
+      timerDisplay.style.color = '#00ffcc';
+      
+      initGame(1);
+    });
+
+    nextLevelButton.addEventListener('click', () => {
+      initGame(gameState.currentLevel + 1);
+    });
+
+    // Criar CSS para animações que adicionamos programaticamente
+    const style = document.createElement('style');
+    style.textContent = `
+      @keyframes fadeUp {
+        from { transform: translateY(0); opacity: 1; }
+        to { transform: translateY(-30px); opacity: 0; }
+      }
+    `;
+    document.head.appendChild(style);
+
+    // Iniciar o jogo
+    initGame();
+    
+    // Tentar iniciar áudio (provavelmente precisará de interação do usuário)
+    if (gameState.soundEnabled) {
+      // Vamos esperar pela interação do usuário para iniciar os sons
+      document.addEventListener('click', function initialClick() {
+        enableAudio();
+        document.removeEventListener('click', initialClick);
+      }, {once: true});
+    }
   </script>
 </body>
 </html>
